@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guest Links · Jaswinder &amp; Simran</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Playfair+Display:ital,wght@1,500&display=swap">
+<style>
+:root{--bg:#24090f;--card:#34101a;--gold:#e2c27a;--ink:#f6e6c8;--mut:#c9ad8a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(120% 80% at 50% 0,#4a0d1c,var(--bg) 60%);color:var(--ink);font:500 1.05rem/1.5 "Cormorant Garamond",serif;min-height:100vh;padding:28px 16px 60px}
+.w{max-width:720px;margin:0 auto}
+h1{font:italic 500 2rem/1.1 "Playfair Display",serif;text-align:center}
+.k{font:600 .62rem/1 Cinzel,serif;letter-spacing:.3em;color:var(--gold);text-align:center;margin-bottom:10px}
+p.s{text-align:center;color:var(--mut);margin:10px auto 22px;max-width:520px}
+label{display:block;font:600 .6rem/1 Cinzel,serif;letter-spacing:.22em;color:var(--gold);margin:18px 0 8px}
+textarea,input{width:100%;background:#1a060b;border:1px solid #6b3a2a;border-radius:12px;color:var(--ink);font:500 1.05rem/1.4 "Cormorant Garamond",serif;padding:12px 14px}
+textarea{min-height:150px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button,.btn{appearance:none;border:0;cursor:pointer;border-radius:999px;padding:11px 16px;font:600 .58rem/1 Cinzel,serif;letter-spacing:.18em;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.gold{background:linear-gradient(#f8e4ad,#d7ab55);color:#3a0610}.wa{background:linear-gradient(#2fd06a,#1aa652);color:#fff}.gh{background:transparent;border:1px solid var(--gold);color:var(--gold)}
+#out{margin-top:22px;display:grid;gap:10px}
+.g{background:var(--card);border:1px solid #5a2a22;border-radius:14px;padding:12px 14px}
+.g b{font:italic 500 1.15rem/1.2 "Playfair Display",serif}
+.g code{display:block;margin:6px 0 10px;font:500 .8rem/1.4 ui-monospace,monospace;color:var(--mut);word-break:break-all}
+.note{margin-top:26px;color:var(--mut);font-size:.98rem}
+</style></head><body><div class="w">
+<div class="k">FOR THE CHAHAL FAMILY ONLY</div>
+<h1>Personal guest links</h1>
+<p class="s">Type one family name per line. Each gets its own link that greets them by name on the envelope, and lets you see in your stats whether that family opened it.</p>
+<label for="names">GUEST NAMES (ONE PER LINE)</label>
+<textarea id="names" placeholder="Gill Family&#10;Sandhu Family&#10;Harpreet Bhaji &amp; Family"></textarea>
+<label for="msg">MESSAGE (USE {name} AND {link})</label>
+<textarea id="msg" style="min-height:190px"></textarea>
+<div class="row"><button class="gold" id="make">CREATE LINKS</button><button class="gh" id="copyAll">COPY ALL AS LIST</button></div>
+<div id="out"></div>
+<p class="note">Tip: open each WhatsApp button on your phone to send straight to that family's chat. The general link (no name) still works for groups.</p>
+</div>
+<script>
+const BASE=location.href.replace(/links\.html.*$/,'');
+const DEF=['Sat Sri Akal {name} ji 🙏','','With the blessings of Waheguru Ji, the Chahal family warmly invites you and your family to the wedding celebrations of','*Jaswinder Singh & Simran Kaur*','','🪔 Sufi Night · Tue 9 Feb','🔥 Jaggo · Thu 11 Feb','💍 Anand Karaj · Sat 13 Feb 2027','','Your personal invitation 💌','{link}'].join('\n');
+const $=q=>document.querySelector(q), names=$('#names'), msg=$('#msg');
+try{ names.value=localStorage.getItem('gl-names')||''; msg.value=localStorage.getItem('gl-msg')||DEF; }catch(e){ msg.value=DEF; }
+let made=[];
+function make(){ const list=names.value.split('\n').map(s=>s.trim()).filter(Boolean); try{ localStorage.setItem('gl-names',names.value); localStorage.setItem('gl-msg',msg.value); }catch(e){}
+  made=list.map(n=>{ const link=BASE+'?to='+encodeURIComponent(n); return {n,link,text:msg.value.replaceAll('{name}',n).replaceAll('{link}',link)}; });
+  const out=$('#out'); out.innerHTML='';
+  made.forEach(m=>{ const d=document.createElement('div'); d.className='g';
+    const b=document.createElement('b'); b.textContent=m.n; const c=document.createElement('code'); c.textContent=m.link;
+    const r=document.createElement('div'); r.className='row'; r.style.marginTop='0';
+    const wa=document.createElement('a'); wa.className='btn wa'; wa.target='_blank'; wa.rel='noopener'; wa.href='https://wa.me/?text='+encodeURIComponent(m.text); wa.textContent='SEND ON WHATSAPP';
+    const cp=document.createElement('button'); cp.className='gh'; cp.textContent='COPY MESSAGE'; cp.onclick=async()=>{ try{ await navigator.clipboard.writeText(m.text); cp.textContent='COPIED ✓'; setTimeout(()=>cp.textContent='COPY MESSAGE',1800);}catch(e){} };
+    r.append(wa,cp); d.append(b,c,r); out.appendChild(d); }); }
+$('#make').onclick=make; if(names.value.trim()) make();
+$('#copyAll').onclick=async()=>{ if(!made.length) make(); try{ await navigator.clipboard.writeText(made.map(m=>m.n+': '+m.link).join('\n')); $('#copyAll').textContent='COPIED ✓'; setTimeout(()=>$('#copyAll').textContent='COPY ALL AS LIST',1800);}catch(e){} };
+</script></body></html>
