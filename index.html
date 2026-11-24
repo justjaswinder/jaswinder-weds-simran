@@ -352,7 +352,9 @@ body[data-tone=light]{--tc:#7a0c1f;--bgc:#f4ead8}
   background:radial-gradient(rgba(255,200,110,.42),rgba(255,170,70,.12) 40%,rgba(255,150,60,0) 68%);mix-blend-mode:screen;animation:hlfl 3.1s ease-in-out infinite}
 .hlan:nth-child(2) .hl-glow{animation-duration:2.4s}.hlan:nth-child(3) .hl-glow{animation-duration:3.7s}
 .hl-fl{animation:hlfl 1.7s ease-in-out infinite;transform-origin:30px 80px}
-@keyframes hlsw{from{transform:rotate(-2.6deg)}to{transform:rotate(2.6deg)}}
+@keyframes hlsw{0%{transform:rotate(-7deg)}50%{transform:rotate(1deg)}100%{transform:rotate(7deg)}}
+.hlan svg{transform-origin:50% 0;animation:hlbob 2.3s ease-in-out infinite alternate}
+@keyframes hlbob{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
 @keyframes hlfl{0%,100%{opacity:1}35%{opacity:.78}60%{opacity:.95}80%{opacity:.82}}
 @media (min-width:700px){ .hlan{--w:60px!important} .hlan:nth-child(1){left:6%!important} .hlan:nth-child(2){left:14%!important} .hlan:nth-child(3){right:20%!important} .hlan:nth-child(4){right:13%!important;display:block} }
 .hlan:nth-child(4){display:none}
@@ -636,7 +638,7 @@ body.flash .jaggo{box-shadow:inset 0 0 70px 6px rgba(255,210,140,.22)}
  <rect x="9" y="94" width="42" height="5" rx="1.5" fill="url(#hlB)"/>
  <path d="M12 99H48L40 110H20Z" fill="url(#hlB)"/><circle cx="30" cy="114" r="3.4" fill="url(#hlB)"/><path d="M28.3 117h3.4L30 129z" fill="url(#hlB)"/>
 </symbol></defs></svg>
-<div class="hls" aria-hidden="true"><div class="hlan" style="left:4px;--ch:70px;--w:48px;animation-duration:5.6s;animation-delay:-1s"><i class="hl-c"></i><span class="hl-glow"></span><svg viewBox="0 0 60 132"><use href="#hlL"/></svg></div><div class="hlan" style="left:46px;--ch:150px;--w:38px;animation-duration:6.4s;animation-delay:-3s"><i class="hl-c"></i><span class="hl-glow"></span><svg viewBox="0 0 60 132"><use href="#hlL"/></svg></div><div class="hlan" style="right:48px;--ch:105px;--w:46px;animation-duration:6s;animation-delay:-2s"><i class="hl-c"></i><span class="hl-glow"></span><svg viewBox="0 0 60 132"><use href="#hlL"/></svg></div><div class="hlan" style="right:6px;--ch:190px;--w:36px;animation-duration:5.2s;animation-delay:-.5s"><i class="hl-c"></i><span class="hl-glow"></span><svg viewBox="0 0 60 132"><use href="#hlL"/></svg></div></div>
+<div class="hls" aria-hidden="true"><div class="hlan" style="left:4px;--ch:70px;--w:48px;animation-duration:3.8s;animation-delay:-1s"><i class="hl-c"></i><span class="hl-glow"></span><svg viewBox="0 0 60 132"><use href="#hlL"/></svg></div><div class="hlan" style="left:46px;--ch:150px;--w:38px;animation-duration:4.4s;animation-delay:-3s"><i class="hl-c"></i><span class="hl-glow"></span><svg viewBox="0 0 60 132"><use href="#hlL"/></svg></div><div class="hlan" style="right:48px;--ch:105px;--w:46px;animation-duration:4.1s;animation-delay:-2s"><i class="hl-c"></i><span class="hl-glow"></span><svg viewBox="0 0 60 132"><use href="#hlL"/></svg></div><div class="hlan" style="right:6px;--ch:190px;--w:36px;animation-duration:3.5s;animation-delay:-.5s"><i class="hl-c"></i><span class="hl-glow"></span><svg viewBox="0 0 60 132"><use href="#hlL"/></svg></div></div>
   <div id="sufiTap" aria-hidden="true"><span class="ring"></span><span class="ring r2"></span><span class="dot"></span></div>
   <div class="wrap">
     <p class="cap num" data-r>I · TUESDAY · 9 FEBRUARY 2027</p>
@@ -890,8 +892,15 @@ window.Music=(function(){
   const WQ=[]; let warming=false;
   function warmNext(){ if(warming||!WQ.length) return; warming=true; const {el,url}=WQ.shift(); fetch(url).then(r=>r.ok?r.blob():Promise.reject()).then(b=>{ el._blobUrl=URL.createObjectURL(b); swapToBlob(el); }).catch(()=>{}).finally(()=>{ warming=false; setTimeout(warmNext,600); }); }
   function warm(){ warmNext(); }
+  const ALL=[];
+  // Alternate songs on one page: each time the guest comes back to it, the other song plays (each loops while they stay).
+  const ALTS={};
+  function useAlt(k,url2,lazy){ const a=EL[k]; if(!a) return; const b=mkEl(url2,lazy); b.loop=true; ALTS[k]={els:[a,b],i:0,played:false}; }
+  function mkEl(url,lazy){ const el=new Audio(); el.src=url; el.preload=lazy?'none':'auto'; el.setAttribute('playsinline',''); el.playsInline=true; el.crossOrigin=null; el._f=0;
+    el.addEventListener('error',()=>{ if(!el._isBlob) el.failed=true; }); ALL.push(el);
+    if(lazy) WQ.push({el,url}); else fetch(url).then(r=>r.ok?r.blob():Promise.reject()).then(b=>{ el._blobUrl=URL.createObjectURL(b); swapToBlob(el); }).catch(()=>{}); return el; }
   function useTrack(k,url,lazy){ const el=new Audio(); el.src=url; el.loop=true; el.preload=lazy?'none':'auto'; el.setAttribute('playsinline',''); el.playsInline=true; el.crossOrigin=null; el._f=0;
-    el.addEventListener('error',()=>{ if(!el._isBlob) el.failed=true; }); EL[k]=el;
+    el.addEventListener('error',()=>{ if(!el._isBlob) el.failed=true; }); EL[k]=el; ALL.push(el);
     // A copy as a local blob lets Web Audio fade it; a track routed into Web Audio straight from another server plays silent.
     if(lazy){ WQ.push({el,url}); return; }
     fetch(url).then(r=>r.ok?r.blob():Promise.reject()).then(b=>{ el._blobUrl=URL.createObjectURL(b); swapToBlob(el); }).catch(()=>{}); }
@@ -903,11 +912,13 @@ window.Music=(function(){
   function fadeEl(el,dir,ms,done){ const sec=ms/1000;
     if(route(el)){ try{ el.volume=1; }catch(e){} const g=el._g.gain, now=ac.currentTime; g.cancelScheduledValues(now); const from=g.value; const curve=new Float32Array(64).map((_,i)=>dir>0? from+(1-from)*UP[i] : from*DOWN[i]); try{ g.setValueCurveAtTime(curve,now+.02,sec); }catch(e){ g.setValueAtTime(dir>0?1:0,now); } el._lv=dir>0?1:0; done&&setTimeout(done,ms+80); return; }
     const from=el.volume, st=performance.now(), to=dir>0?1:0; (function f(now){ const k=Math.min(1,(now-st)/ms), c=dir>0?Math.sin(k*Math.PI/2):Math.cos(k*Math.PI/2); try{ el.volume=dir>0? from+(1-from)*c : from*c; }catch(e){} if(k<1) requestAnimationFrame(f); else done&&done(); })(st); }
-  function elSwitch(name){ const nx=EL[name]&&!EL[name].failed?EL[name]:null;
+  function elSwitch(name){ const A=ALTS[name];
+    if(A&&elCur!==EL[name]){ if(A.played){ const o=A.els[A.i^1]; if(!o.failed){ A.i^=1; EL[name]=o; try{ o.currentTime=0; }catch(e){} } } A.played=true; }
+    const nx=EL[name]&&!EL[name].failed?EL[name]:null;
     if(elCur&&elCur!==nx){ const o=elCur; fadeEl(o,-1,2000,()=>{ if(o!==elCur){ o.pause(); swapToBlob(o); } }); }
     elCur=nx; if(nx){ nx.muted=muted; if(nx._g){ nx._g.gain.cancelScheduledValues(ac.currentTime); nx._g.gain.setValueAtTime(0,ac.currentTime); } else { try{ nx.volume=0; }catch(e){} } nx._lv=0;
       const p=nx.play(); p&&p.catch(()=>{}); if(elCur===nx) fadeEl(nx,1,2000); } }
-  function elUnlock(){ Object.values(EL).forEach(el=>{ if(el===elCur||el._u) return; el._u=1; el.muted=true; const p=el.play(); p&&p.then(()=>{ if(el!==elCur){ el.pause(); try{ el.currentTime=0; }catch(e){} swapToBlob(el); } el.muted=muted; }).catch(()=>{ el.muted=muted; }); }); }
+  function elUnlock(){ ALL.forEach(el=>{ if(el===elCur||el._u) return; el._u=1; el.muted=true; const p=el.play(); p&&p.then(()=>{ if(el!==elCur){ el.pause(); try{ el.currentTime=0; }catch(e){} swapToBlob(el); } el.muted=muted; }).catch(()=>{ el.muted=muted; }); }); }
   function useFile(k,url){ FILES[k]={url}; fetch(url).then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(d=>{ FILES[k].data=d; decode(k); }).catch(()=>{ FILES[k].failed=true; }); }
   function pumpFile(k){ const f=FILES[k], xf=1.2; while(fileNext<ac.currentTime+.6){ const s=ac.createBufferSource(), g=ac.createGain(), t=Math.max(fileNext,ac.currentTime+.02), D=f.buf.duration;
       const off=f.resume||0; f.resume=0; const d=D-off; f.startAt=t-off;
@@ -924,7 +935,7 @@ window.Music=(function(){
   function fade(){ const now=ac.currentTime; master.gain.cancelScheduledValues(now); master.gain.setValueAtTime(master.gain.value,now); master.gain.linearRampToValueAtTime(muted?0:.8,now+1.2); }
   function duck(){ if(!ac||!cur) return; const g=buses[cur].gain, now=ac.currentTime; g.cancelScheduledValues(now); g.setValueAtTime(g.value,now); g.linearRampToValueAtTime(.35,now+.05); g.linearRampToValueAtTime(cur==='jaggo'?1:.95,now+1.6); }
   function setMuted(m){ muted=m; Object.values(EL).forEach(el=>el.muted=m); if(m&&elCur) elCur.pause(); else if(!m&&elCur){ const p=elCur.play(); p&&p.catch(()=>{}); } if(ac) fade(); }
-  return {warm,useHit, _el:()=>Object.fromEntries(Object.entries(EL).map(([k,e])=>[k,{paused:e.paused,t:+e.currentTime.toFixed(1),vol:+e.volume.toFixed(2),g:e._g?+e._g.gain.value.toFixed(2):null,failed:!!e.failed}])), useTrack, level:()=>{ if(!AN||!playing||muted||(EL[cur]&&!EL[cur].failed&&!EL[cur]._g)) return 0; AN.getByteFrequencyData(FD); let b=0; for(let i=1;i<7;i++) b+=FD[i]; let m=0; for(let i=14;i<60;i++) m+=FD[i]; return {bass:b/6/255, mid:m/46/255}; }, _files:()=>Object.fromEntries(Object.entries(FILES).map(([k,f])=>[k,{buf:!!f.buf,dur:f.buf&&f.buf.duration,failed:!!f.failed,playing:fileSrcs.length}])), useFile, ctx, fx:()=>{ ctx(); return fxBus; }, start, setTheme:n=>{ if(playing) setTheme(n); else cur=n; }, setMuted, get muted(){ return muted; }, get playing(){ return playing; },
+  return {_cur:()=>elCur,warm,useAlt,useHit, _el:()=>Object.fromEntries(Object.entries(EL).map(([k,e])=>[k,{paused:e.paused,t:+e.currentTime.toFixed(1),vol:+e.volume.toFixed(2),g:e._g?+e._g.gain.value.toFixed(2):null,failed:!!e.failed}])), useTrack, level:()=>{ if(!AN||!playing||muted||(EL[cur]&&!EL[cur].failed&&!EL[cur]._g)) return 0; AN.getByteFrequencyData(FD); let b=0; for(let i=1;i<7;i++) b+=FD[i]; let m=0; for(let i=14;i<60;i++) m+=FD[i]; return {bass:b/6/255, mid:m/46/255}; }, _files:()=>Object.fromEntries(Object.entries(FILES).map(([k,f])=>[k,{buf:!!f.buf,dur:f.buf&&f.buf.duration,failed:!!f.failed,playing:fileSrcs.length}])), useFile, ctx, fx:()=>{ ctx(); return fxBus; }, start, setTheme:n=>{ if(playing) setTheme(n); else cur=n; }, setMuted, get muted(){ return muted; }, get playing(){ return playing; },
     hit:{ dagga:t=>{ ctx(); dagga(ac.currentTime,.7,fxBus); }, tilli:()=>{ ctx(); tilli(ac.currentTime,.4,fxBus); },
     dhol:(side)=>{ ctx(); if(DS.buf){ duck(); const now=ac.currentTime; DS.live=DS.live.filter(x=>x.end>now); if(DS.live.length>=3){ const o=DS.live.shift(); try{ o.g.gain.setTargetAtTime(0,now,.03); o.s.stop(now+.15); }catch(e){} }
         const s=ac.createBufferSource(), g=ac.createGain(); s.buffer=DS.buf; s.playbackRate.value=side==='l'?.97:1.03; g.gain.value=1; s.connect(g); g.connect(comp); s.start(now); DS.live.push({s,g,end:now+DS.buf.duration}); return; }
@@ -1669,7 +1680,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const body=document.body;
 const P=Petals2D($('#petals')); P.rate(0);
-Music.useTrack('royal','intro-laung-2.mp3'); Music.useTrack('sufi','sufi-alfaaz.mp3',1); Music.useTrack('jaggo','jaggo-night.mp3',1); Music.useTrack('wedding','wedding-laavan.mp3',1); Music.useHit('dhol-tap.mp3');
+Music.useTrack('royal','intro-laung-2.mp3'); Music.useTrack('sufi','sufi-alfaaz.mp3',1); Music.useAlt('sufi','sufi-2.mp3',1); Music.useTrack('jaggo','jaggo-night.mp3',1); Music.useTrack('wedding','wedding-laavan.mp3',1); Music.useHit('dhol-tap.mp3');
 const pages=$$('.pg');
 
 /* ---------- music button ---------- */
